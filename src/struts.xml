@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+	<!-- 开发模式 -->
+	<constant name="struts.devMode" value="true"/>
+	
+	<package name="action" extends="json-default">
+		<!-- 公共返回信息 -->
+		<global-results>
+			<result name="index">/index.jsp</result>
+			<result name="ulogin" type="redirect">/ulogin.jsp</result>
+			<!-- 配置返回格式为“流”的形式 -->
+			<result name="stream" type="stream">
+				<param name="inputStream">inputStream</param>
+			</result>
+		</global-results>
+		<!-- category_* 通配符：如category_save.action 对应 method=save -->
+		<action name="category_*" class="com.ssh.shop.action.CategoryAction" method="{1}">
+			
+			
+			<result name="jsonMap" type="json">
+				<param name="root">pageMap</param>
+				<!-- 配置黑名单，过滤不需要的选项，如密码 。
+					支持正则表达式：
+						\d:一个数字；	+:一个或多个； 	?:0或1； 		 *:1或多 ； 	 [ABC]:自定义类型，必须为ABC中的其中一个 ；  .:任意字符
+				-->
+				<!-- 
+				{
+				"total":6,
+				"rows":[
+					{
+					"account":{"id":1,"login":"admin","name":"管理员","pass":"admin"},
+					"hot":true,
+					"id":1,
+					"type":"男士休闲"}
+				, ...
+				]}
+				 -->
+				<param name="excludeProperties">
+					<!-- rows[0].account.pass -->
+					rows\[\d+\]\.account\.pass,
+					rows\[\d+\]\.account\.name
+				</param>
+			</result>
+			
+			<!-- 查询所属类别 -->
+			<result name="jsonList" type="json">
+				<param name="root">jsonList</param>
+				<param name="excludeProperties">
+					<!-- rows[0].category.account -->
+					rows\[\d+\]\.category\.account,
+					rows\[\d+\]\.date
+				</param>
+			</result>
+		</action>
+		
+		<!-- Account -->
+		<action name="account_*" class="com.ssh.shop.action.AccountAction" method="{1}">
+			<result name="jsonList" type="json">
+				<param name="root">jsonList</param>
+			</result>
+		</action>
+		
+		<action name="product_*" class="com.ssh.shop.action.ProductAction" method="{1}">
+			<result name="jsonMap" type="json">
+				<param name="root">pageMap</param>
+				<!-- 配置黑名单：
+					因为product中包含category，而category中又包含account，
+					当查完category后session关闭，account没查所以为空对象，
+					会报hibernate懒加载异常，所以在此屏蔽account-->
+				<param name="excludeProperties">
+					<!-- rows[0].category.account -->
+					rows\[\d+\]\.category\.account,
+					rows\[\d+\]\.date
+				</param>
+			</result>
+			<!-- 跳转到商品详细 -->
+			<result name="detail">/detail.jsp</result>
+		</action>
+		
+		<!-- Sorder购物项 -->
+		<action name="sorder_*" class="com.ssh.shop.action.SorderAction" method="{1}">
+			<result name="showCar" type="redirect">
+				/showCar.jsp
+			</result>
+			<!-- 返回销量的json列表 -->
+			<result name="jsonList" type="json"/>
+		</action>
+		
+		<!-- 例如：send_main_left.action 跳转到 /main/left.jsp -->
+		<action name="send_*_*" class="com.ssh.shop.action.SendAction">
+			<result name="send">/{1}/{2}.jsp</result>
+		</action>
+		
+		<!-- user -->
+		<action name="user_*" class="com.ssh.shop.action.UserAction" method="{1}">
+			<result name="goUrl" type="redirect">${#session.goUrl}</result>
+		</action>
+		<!-- user -->
+		<action name="forder_*" class="com.ssh.shop.action.ForderAction" method="{1}">
+			<result name="bank" type="redirect">/user/bank.jsp</result>
+		</action>
+		
+	</package>
+	
+	<package name="sshtest" extends="struts-default" namespace="/">
+		<action name="sshActionTest" class="com.ssh.shop.action.SSHActionTest" method="addCategory">
+			<result name="ok">/index_test_ssh.jsp</result>
+		</action>
+	</package>
+	
+	
+</struts>    

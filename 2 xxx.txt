@@ -1,0 +1,19 @@
+1.XML与注解的比较：
+	Xml
+		缺点：在开发的时候比较慢，代码冗余度高，在更新Java类的时候Xml中对应的继承等关系不会更新
+		优点：维护的时候，查看类之间的关系比较方便
+	注解
+		缺点：维护不方便
+		优点：开发速度快
+2.spring配置文件中配置注解：
+	2.1：添加：xmlns:context="http://www.springframework.org/schema/context"和
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	
+	2.2：<!-- 配置注解扫描 com.ssh.shop包下的目录和子目录都支持注解-->
+	<context:component-scan base-package="com.ssh.shop.."/>
+	
+3.注解：
+
+4.AOP：spring的AOP是基于动态代理模式，动态代理有2种：
+	如果类实现了接口，那么代理为基于JDK的 Proxy代理
+	如果类没有实现接口，则生成的AOP就是CGLIB代理

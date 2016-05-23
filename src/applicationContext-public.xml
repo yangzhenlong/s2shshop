@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	xmlns：
+	xsi:schemaLocation：
+ -->
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	">
+	
+	<!-- 配置注解扫描 com.ssh.shop包下的目录和子目录都支持注解-->
+	<context:component-scan base-package="com.ssh.shop.."/>
+	
+	<!-- 
+		1.配置spring开发环境
+			1-1：添加配置文件，如applicationContext.xml
+			1-2：创建date对象，如果成功，则spring环境配置成功
+		2.配置hibernate环境
+			2-1：配置DB Browser，添加hibernate-3.6.jar mysql-connector-java.jar
+			2-2：添加配置文件hibernate.cfg.xml，创建hibernate工具类HibernateSessionFactory，
+				 目的是为了加载hibernate.cfg.xml，创建session
+			2-3：通过hibernate的Reverse功能，反向生成model、orm映射文件：通过table逆向生成model、orm.xml
+			2-4：创建service类，通过new的方式执行入库操作，在junit测试过程中JEE6环境会报validate bean的错误，
+				 配置bean验证为none：<property name="javax.persistence.validation.mode">none</property>
+		3.整合spring和hibernate，采用AOP来管理事务，实现声明式事务
+			3-1：添加spring-3.2-aop.jar，spring-3.2-persistence.jar，c3p0.jar
+			3-2：配置数据源，注入c3p0.jar里面的ComboPooledDataSource类，，并且删除hibernate.cfg.xml中的数据库配置
+			3-3：配置sessionFactory：注入org.springframework.orm.hibernate3.LocalSessionFactoryBean，
+				 并且依赖dataSource和hibernate.cfg.xml
+			3-4：配置声明式事务管理，依赖sessionFactory，这样所有session都会有声明式事务。
+			3-5：配置advice通知，advice是指定哪些方法需要配置何种类型的事务
+				Spring中常用事务类型：
+				PROPAGATION_REQUIRED：支持当前事务，如果当前没有事务，就新建一个事务。这是最常见的选择。
+				PROPAGATION_SUPPORTS：支持当前事务，如果当前没有事务，就以非事务方式执行。
+				PROPAGATION_MANDATORY：支持当前事务，如果当前没有事务，就抛出异常。
+				PROPAGATION_REQUIRES_NEW：新建事务，如果当前存在事务，把当前事务挂起。
+				PROPAGATION_NOT_SUPPORTED：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+				PROPAGATION_NEVER：以非事务方式执行，如果当前存在事务，则抛出异常。
+				PROPAGATION_NESTED：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则进行与PROPAGATION_REQUIRED类似的操作。
+			3-6：配置AOP切面表达式
+			3-7：service交给spring管理，如果数据库更新数据成功，说明声明式事务切入成功。
+			3-8：测试整合 categoryService的update方法
+		4.配置struts2环境
+			4-1：添加配置文件struts.xml和struts2-2.jar包，并在web.xml中添加filter：StrutsPrepareAndExecuteFilter
+			4-2：创建Action继承ActionSupport，并配置到struts.xml中
+			4-3：添加jsp，访问action，测试struts2的功能
+			4-4：此时创建action的工厂为：com.opensymphony.xwork2.ObjectFactory
+			
+		5.spring与struts2整合，用spring管理action，注入action的依赖
+			5-1：添加spring-3.2-web.jar，里面包含struts2-spring-plugin-2.1.6.jar
+			5-2：将action和它的依赖交给spring容器管理，配置到applicationContenxt-action.xml中
+			5-3：在struts.xml中class对应是spring中配置的action的id值
+			5-4：在jsp中访问action，然后看action的依赖（service对象）是否为null，不为null，说明依赖注入成功，struts和spring整合成功。
+		
+		6.SSH整合
+			6-1：在jsp中添加表单，在spring中注入action和依赖
+			6-2：打开hibernate.cfg.xml中连接数据库的注释部分，不然会报错，更新数据库失败
+	 -->
+	 
+	 <!-- 
+	 	数据库配置信息，放入properties文件，所有的properties文件都交给Spring管理，并且在启动时加载
+	 	Spring支持2中方式：
+	 		1.xml形式的：context:property-placeholder或者使用PreferencesPlaceholderConfigurer类【建议使用】管理
+	 		2.注解形式的：PropertiesFactoryBean类管理
+	 	
+	  -->
+	  <!-- 基于xml配置的加载“properties”的方式 -->
+	 <!-- <context:property-placeholder location="classpath:mysql.properties"/> --> 
+	 <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+	 	<property name="locations">
+	 		<array>
+	 			<value>classpath:mysql.properties</value>
+	 		</array>
+	 	</property>
+	 </bean>
+	 <!-- 基于注解 的加载“properties”的方式-->
+	 <bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+	 	<property name="locations">
+	 		<array>
+	 			<value>classpath:public.properties</value>
+	 		</array>
+	 	</property>
+	 </bean>
+	 
+	 <!-- 3-2配置数据源 -->
+	<bean id="dataSource" class="${dataSource}">
+		<property name="driverClass" value="${driverClass}"/>
+		<!-- <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/shop"/> -->
+		<!-- 解决乱码问题 -->
+		<property name="jdbcUrl" value="${jdbcUrl}?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8"></property>
+		<property name="user" value="${user}"/>
+		<property name="password" value="${password}"/>
+	</bean>
+	<!-- 3-3配置sessionFactory bean路径：spring-3.2-persistence/spring-orm-3.2.0.RELEASE.jar-->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:hibernate.cfg.xml"/>
+	</bean>
+	<!-- 3-4配置声明式事务管理 -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 3-5：配置advice通知，指定哪些方法需要配置何种类型的事务 -->
+	<tx:advice id="advice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- save、update、delete方法，支持当前事务，如果当前没有事务，就新建一个事务 -->
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<!-- 其他方法，支持当前事务，如果当前没有事务，就以非事务方式执行 -->
+			<tx:method name="*" propagation="SUPPORTS"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 3-6：配置AOP切面表达式 -->
+	<aop:config>
+		<!-- 1.切面表达式：配置哪个包的类需要切入事务 （鼠标放到expression上，有提示）-->
+		<aop:pointcut id="pointcut" expression="execution(* com.ssh.shop.service.*.*(..))"/>
+		<!-- 2.通知+切面表达式，哪个包的类使用哪种类型的事务，才是完整的切入路径 -->
+		<aop:advisor advice-ref="advice" pointcut-ref="pointcut"/>
+	</aop:config>
+</beans>

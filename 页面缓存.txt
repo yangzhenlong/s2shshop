@@ -1,0 +1,28 @@
+<head>
+    <base href="<%=basePath%>">
+    
+    <title>My JSP 'MyJsp.jsp' starting page</title>
+    
+	<meta http-equiv="pragma" content="no-cache"> 			<!-- 设置页面是否支持缓存：用于HTTP 1.0协议 -->
+	<meta http-equiv="cache-control" content="no-cache"> 	<!-- 设置页面是否支持缓存：用于HTTP 1.1协议 -->
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+
+ </head>
+ 
+ 服务器缓存设置(在jsp中加入)：
+ 	<%
+ 		response.setHeader("cache-control", "no-cache");
+ 	%>
+	说明：1.no-cache:仅仅支持IE，不支持火狐和google
+		   no-store:支持所有浏览器post方式（提示“页面过期”），不支持google的get方式
+		 2.当访问缓存页面的请求方式为post，后退是出现“页面过期”
+		   为get（如<a>标签），后退时，文本框数据消失，从服务器重新加载页面，不会提示“页面过期”
+	所以建议设置为：	   
+	<%
+ 		response.setHeader("cache-control", "no-store");
+ 	%>

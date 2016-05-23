@@ -1,0 +1,46 @@
+1.配置spring开发环境
+	1-1：添加配置文件，如applicationContext.xml
+	1-2：创建date对象，如果成功，则spring环境配置成功
+	
+2.配置hibernate环境
+	2-1：配置DB Browser，添加hibernate-3.6.jar mysql-connector-java.jar
+	2-2：添加配置文件hibernate.cfg.xml，创建hibernate工具类HibernateSessionFactory，
+		 目的是为了加载hibernate.cfg.xml，创建session
+	2-3：通过hibernate的Reverse功能，反向生成model、orm映射文件：通过table逆向生成model、orm.xml
+	2-4：创建service类，通过new的方式执行入库操作，在junit测试过程中JEE6环境会报validate bean的错误，
+		 配置bean验证为none：<property name="javax.persistence.validation.mode">none</property>
+		 
+3.整合spring和hibernate，采用AOP来管理事务，实现声明式事务
+	3-1：添加spring-3.2-aop.jar，spring-3.2-persistence.jar，c3p0.jar
+	3-2：配置数据源，注入c3p0.jar里面的ComboPooledDataSource类，，并且删除hibernate.cfg.xml中的数据库配置
+	3-3：配置sessionFactory：注入org.springframework.orm.hibernate3.LocalSessionFactoryBean，
+		 并且依赖dataSource和hibernate.cfg.xml
+	3-4：配置声明式事务管理，依赖sessionFactory，这样所有session都会有声明式事务。
+	3-5：配置advice通知，advice是指定哪些方法需要配置何种类型的事务
+		Spring中常用事务类型：
+		PROPAGATION_REQUIRED：支持当前事务，如果当前没有事务，就新建一个事务。这是最常见的选择。
+		PROPAGATION_SUPPORTS：支持当前事务，如果当前没有事务，就以非事务方式执行。
+		PROPAGATION_MANDATORY：支持当前事务，如果当前没有事务，就抛出异常。
+		PROPAGATION_REQUIRES_NEW：新建事务，如果当前存在事务，把当前事务挂起。
+		PROPAGATION_NOT_SUPPORTED：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+		PROPAGATION_NEVER：以非事务方式执行，如果当前存在事务，则抛出异常。
+		PROPAGATION_NESTED：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则进行与PROPAGATION_REQUIRED类似的操作。
+	3-6：配置AOP切面表达式
+	3-7：service交给spring管理，如果数据库更新数据成功，说明声明式事务切入成功。
+	3-8：测试整合 categoryService的update方法
+	
+4.配置struts2环境
+	4-1：添加配置文件struts.xml和struts2-2.jar包，并在web.xml中添加filter：StrutsPrepareAndExecuteFilter
+	4-2：创建Action继承ActionSupport，并配置到struts.xml中
+	4-3：添加jsp，访问action，测试struts2的功能
+	4-4：此时创建action的工厂为：com.opensymphony.xwork2.ObjectFactory
+	
+5.spring与struts2整合，用spring管理action，注入action的依赖
+	5-1：添加spring-3.2-web.jar，里面包含struts2-spring-plugin-2.1.6.jar
+	5-2：将action和它的依赖交给spring容器管理，配置到applicationContenxt-action.xml中
+	5-3：在struts.xml中class对应是spring中配置的action的id值
+	5-4：在jsp中访问action，然后看action的依赖（service对象）是否为null，不为null，说明依赖注入成功，struts和spring整合成功。
+
+6.SSH整合
+	6-1：在jsp中添加表单，在spring中注入action和依赖
+	6-2：打开hibernate.cfg.xml中连接数据库的注释部分，不然会报错，更新数据库失败

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" 
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+  <display-name></display-name>	
+  <welcome-file-list>
+    <welcome-file>indexs.jsp</welcome-file>
+  </welcome-file-list>
+  
+  	<!-- 
+  		解决：could not initialize proxy - no Session
+  		让opensession closesession全交给视图部分，最后视图部分用完了session再去关session 
+  	
+  		要加在strutsfilter有前面，因为它也有先后顺序，有先进先出的原则
+  		这样做就是让opensession closesession全交给视图部分，最后视图部分用完了session再去关session
+  	-->
+	<filter>
+		<filter-name>openSessionInView</filter-name>
+		<filter-class>org.springframework.orm.hibernate3.support.OpenSessionInViewFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>openSessionInView</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+  
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>
+  		org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter
+  	</filter-class>
+  </filter>
+  <filter-mapping>
+  	<filter-name>struts2</filter-name>
+  	<url-pattern>*.action</url-pattern>
+  </filter-mapping>
+  
+  <!-- 判断用户是否登录的过滤器 -->
+  <filter>
+  	<filter-name>userFilter</filter-name>
+  	<filter-class>
+  		com.ssh.shop.filter.UserFilter
+  	</filter-class>
+  </filter>
+  <filter-mapping>
+  	<filter-name>userFilter</filter-name>
+  	<url-pattern>/user/*</url-pattern>
+  </filter-mapping>
+  
+  	<!-- web.xml中监听器的启动优先级高于过滤器 -->
+  	<!--配置spring：让服务器启动时默认加载spring配置文件， ContextLoaderListener在spring-web-3.2.jar包中 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param>
+  		<!-- org.springframework.web.context.ContextLoader.class中 -->
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>classpath:applicationContext-*.xml</param-value>
+  	</context-param>
+  	
+  	<!-- 自定义监听，获取spring配置文件中的注入bean -->
+  	<listener>
+		<listener-class>com.ssh.shop.listenter.InitDataListenter</listener-class>
+	</listener>
+	
+</web-app>
